@@ -141,6 +141,29 @@ class ParkingController extends Controller
         ]);
     }
 
+    public function history()
+    {
+        $movements = ParkingMovement::with(['vehicle.apartment.owner.person'])
+            ->latest()
+            ->limit(100)
+            ->get();
+
+        $thirtyDaysAgo = Carbon::now()->subDays(30);
+
+        // Vehicles currently inside that entered over 30 days ago
+        $stationaryVehicles = Vehicle::with(['apartment.owner.person'])
+            ->whereHas('movements', function($q) use ($thirtyDaysAgo) {
+                $q->whereNull('exit_time')
+                  ->where('entry_time', '<', $thirtyDaysAgo);
+            })
+            ->get();
+
+        return response()->json([
+            'movements' => $movements,
+            'stationary' => $stationaryVehicles
+        ]);
+    }
+
     private function checkAccessEligibility($apartmentId)
     {
         // 1. Check for blocking Coexistence Reports

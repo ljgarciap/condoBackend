@@ -12,17 +12,17 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, \Laravel\Sanctum\HasApiTokens;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
+        'person_id',
         'email',
         'password',
         'role_id',
     ];
+
+    public function person()
+    {
+        return $this->belongsTo(Person::class);
+    }
 
     public function role()
     {

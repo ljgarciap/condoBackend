@@ -4,18 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Resident extends Model
+class Visit extends Model
 {
-    protected $fillable = ['apartment_id', 'person_id', 'birthdate'];
+    protected $fillable = ['person_id', 'apartment_id', 'entry_at', 'exit_at', 'reason'];
+
+    protected $casts = [
+        'entry_at' => 'datetime',
+        'exit_at' => 'datetime',
+    ];
 
     public function person()
     {
         return $this->belongsTo(Person::class);
     }
-
-    protected $casts = [
-        'birthdate' => 'date',
-    ];
 
     public function apartment()
     {

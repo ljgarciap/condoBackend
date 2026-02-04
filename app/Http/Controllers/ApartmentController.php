@@ -9,7 +9,7 @@ class ApartmentController extends Controller
 {
     public function index()
     {
-        return Apartment::with(['residents', 'vehicles', 'owner'])->get();
+        return Apartment::with(['residents.person', 'vehicles', 'owner.person'])->get();
     }
 
     public function store(Request $request)
@@ -28,7 +28,7 @@ class ApartmentController extends Controller
 
     public function show(Apartment $apartment)
     {
-        return $apartment->load(['residents', 'vehicles', 'owner']);
+        return $apartment->load(['residents.person', 'vehicles', 'owner.person']);
     }
 
     public function update(Request $request, Apartment $apartment)

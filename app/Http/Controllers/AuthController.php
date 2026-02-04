@@ -15,12 +15,21 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
+            'document' => 'required|string|unique:people,document',
+            'document_type' => 'required|string|in:CC,TI,TE,PAS,PEP,RC',
             'password' => 'required|string|min:8|confirmed',
             'role_id' => 'required|exists:roles,id'
         ]);
 
-        $user = User::create([
+        $person = \App\Models\Person::create([
             'name' => $validated['name'],
+            'document' => $validated['document'],
+            'document_type' => $validated['document_type'],
+            'email' => $validated['email'],
+        ]);
+
+        $user = User::create([
+            'person_id' => $person->id,
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role_id' => $validated['role_id'],
@@ -31,7 +40,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user,
+            'user' => $user->load(['role', 'person']),
         ], 201);
     }
 
@@ -49,7 +58,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user,
+            'user' => $user->load(['role', 'person']),
         ]);
     }
 
@@ -62,6 +71,6 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        return response()->json($request->user()->load(['role', 'person']));
     }
 }

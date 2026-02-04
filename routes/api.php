@@ -22,8 +22,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/vehicles', [VehicleController::class, 'index']);
     Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show']);
     Route::get('/parking/status', [\App\Http\Controllers\ParkingController::class, 'status']);
+    Route::get('/parking/history', [\App\Http\Controllers\ParkingController::class, 'history']);
     Route::post('/parking/entry', [\App\Http\Controllers\ParkingController::class, 'registerEntry']);
     Route::post('/parking/exit', [\App\Http\Controllers\ParkingController::class, 'registerExit']);
+    
+    Route::get('/people/search/{document}', [\App\Http\Controllers\PeopleController::class, 'showByDocument']);
+    Route::apiResource('people', \App\Http\Controllers\PeopleController::class);
+    Route::apiResource('visits', \App\Http\Controllers\VisitController::class);
     Route::get('/users', [\App\Http\Controllers\UserController::class, 'index']);
     Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index']);
     Route::get('/messages/sent', [\App\Http\Controllers\MessageController::class, 'sent']);
