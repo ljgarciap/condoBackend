@@ -13,6 +13,7 @@ class Notification extends Model
         'message',
         'type',
         'read_at',
+        'attachment',
     ];
 
     protected $casts = [

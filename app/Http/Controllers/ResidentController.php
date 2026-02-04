@@ -11,7 +11,7 @@ class ResidentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Resident::with(['apartment', 'person']);
+        $query = Resident::with(['apartment', 'person.user.role']);
 
         if ($request->has('search')) {
             $search = $request->search;
@@ -31,7 +31,7 @@ class ResidentController extends Controller
             'name' => 'required|string',
             'document' => 'required|string',
             'document_type' => 'required|string|in:CC,TI,TE,PAS,PEP,RC',
-            'email' => 'required|email',
+            'email' => 'required_if:create_user,true|nullable|email',
             'phone' => 'nullable|string',
             'birthdate' => 'required|date',
             'create_user' => 'boolean',
@@ -84,6 +84,8 @@ class ResidentController extends Controller
             'email' => 'nullable|email',
             'phone' => 'nullable|string',
             'birthdate' => 'sometimes|required|date',
+            'create_user' => 'boolean',
+            'password' => 'required_if:create_user,true|string|min:6',
         ]);
 
         if ($request->has(['name', 'document'])) {
@@ -100,6 +102,18 @@ class ResidentController extends Controller
             'apartment_id' => $validated['apartment_id'] ?? $resident->apartment_id,
             'birthdate' => $validated['birthdate'] ?? $resident->birthdate,
         ]);
+
+        if ($request->create_user) {
+            $role = \App\Models\Role::where('name', 'resident')->first();
+            \App\Models\User::updateOrCreate(
+                ['person_id' => $resident->person_id],
+                [
+                    'email' => $validated['email'] ?? $resident->person->email,
+                    'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
+                    'role_id' => $role->id,
+                ]
+            );
+        }
 
         return response()->json($resident->load(['apartment', 'person']));
     }

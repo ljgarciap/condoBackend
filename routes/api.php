@@ -17,6 +17,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications', [\App\Http\Controllers\NotificationController::class, 'store']);
     Route::post('/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead']);
     Route::post('/policies/accept', [\App\Http\Controllers\NotificationController::class, 'acceptPolicies']);
+    Route::get('/dashboard/stats', [\App\Http\Controllers\DashboardController::class, 'stats']);
+    Route::post('/chunks/upload', [\App\Http\Controllers\ChunkUploadController::class, 'uploadChunk']);
 
     // List/Show routes (Vigilante & Admin)
     Route::get('/apartments', [ApartmentController::class, 'index']);
