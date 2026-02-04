@@ -14,7 +14,12 @@ class AdminPaymentController extends Controller
 
         if ($user->isResident()) {
             $resident = \App\Models\Resident::where('person_id', $user->person_id)->first();
-            $query->where('apartment_id', $resident->apartment_id);
+            if ($resident) {
+                $query->where('apartment_id', $resident->apartment_id);
+            } else {
+                // If user is resident role but has no resident record (should not happen), return empty
+                return response()->json(['data' => [], 'total' => 0, 'current_page' => 1, 'last_page' => 1]);
+            }
         }
 
         return $query->latest()

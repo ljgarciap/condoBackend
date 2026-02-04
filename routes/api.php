@@ -46,6 +46,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/surveys', [\App\Http\Controllers\SurveyController::class, 'index']);
     Route::get('/surveys/{survey}', [\App\Http\Controllers\SurveyController::class, 'show']);
 
+    // Payments (Shared Admin/Resident)
+    Route::get('/admin-payments', [\App\Http\Controllers\AdminPaymentController::class, 'index']);
+    Route::get('/admin-payments/{admin_payment}', [\App\Http\Controllers\AdminPaymentController::class, 'show']);
+
     // Admin-only routes (Create, Update, Delete)
     Route::middleware('role:admin')->group(function () {
         Route::post('/vigilantes', [\App\Http\Controllers\VigilanteController::class, 'store']);
@@ -69,8 +73,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::delete('/people/{person}', [\App\Http\Controllers\PeopleController::class, 'destroy']);
 
-        Route::get('/admin-payments', [\App\Http\Controllers\AdminPaymentController::class, 'index']);
-        Route::get('/admin-payments/{admin_payment}', [\App\Http\Controllers\AdminPaymentController::class, 'show']);
         Route::post('/admin-payments', [\App\Http\Controllers\AdminPaymentController::class, 'store']);
         Route::put('/admin-payments/{admin_payment}', [\App\Http\Controllers\AdminPaymentController::class, 'update']);
         Route::delete('/admin-payments/{admin_payment}', [\App\Http\Controllers\AdminPaymentController::class, 'destroy']);
