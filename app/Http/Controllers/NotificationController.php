@@ -12,23 +12,19 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $filter = $request->query('filter', 'received'); // Default to received
         
-        // Admins see all notifications (sent by them or received)
-        if ($user->isAdmin()) {
-            $query = Notification::with(['sender.person', 'receiver.person'])
-                ->where(function($q) use ($user) {
-                    $q->where('sender_id', $user->id)
-                      ->orWhere('receiver_id', $user->id)
-                      ->orWhereNull('receiver_id'); // Broadcasts
-                });
-        } 
-        // Vigilantes and Residents see notifications they sent or received
-        else {
-            $query = Notification::with(['sender.person', 'receiver.person'])
-                ->where(function($q) use ($user) {
-                    $q->where('sender_id', $user->id)
-                      ->orWhere('receiver_id', $user->id);
-                });
+        $query = Notification::with(['sender.person', 'receiver.person']);
+
+        if ($filter === 'sent') {
+            // Notifications sent by the user
+            $query->where('sender_id', $user->id);
+        } else {
+            // Notifications received by the user (or broadcasts)
+            $query->where(function($q) use ($user) {
+                $q->where('receiver_id', $user->id)
+                  ->orWhereNull('receiver_id');
+            });
         }
 
         return $query->orderBy('created_at', 'desc')->paginate($request->input('per_page', 10));
