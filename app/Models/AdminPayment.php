@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AdminPayment extends Model
 {
-    protected $fillable = ['apartment_id', 'amount', 'due_date', 'paid_date', 'status'];
+    protected $fillable = ['apartment_id', 'amount', 'due_date', 'paid_date', 'status', 'description'];
 
     protected $casts = [
         'due_date' => 'date',

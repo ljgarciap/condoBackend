@@ -7,9 +7,22 @@ use Illuminate\Http\Request;
 
 class ApartmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Apartment::with(['residents.person', 'vehicles', 'owner.person'])->get();
+        $query = Apartment::with(['residents.person', 'vehicles', 'owner.person']);
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('number', 'like', "%{$search}%")
+                  ->orWhere('block', 'like', "%{$search}%")
+                  ->orWhereHas('owner.person', function($sq) use ($search) {
+                      $sq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        return $query->paginate($request->input('per_page', 5));
     }
 
     public function store(Request $request)

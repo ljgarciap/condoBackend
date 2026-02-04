@@ -9,9 +9,19 @@ use Illuminate\Http\Request;
 
 class ResidentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Resident::with(['apartment', 'person'])->get();
+        $query = Resident::with(['apartment', 'person']);
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->whereHas('person', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('document', 'like', "%{$search}%");
+            });
+        }
+
+        return $query->paginate($request->input('per_page', 5));
     }
 
     public function store(Request $request)

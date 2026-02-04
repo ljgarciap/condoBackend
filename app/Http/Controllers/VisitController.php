@@ -10,9 +10,22 @@ use Carbon\Carbon;
 
 class VisitController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Visit::with(['person', 'apartment'])->latest()->get();
+        $query = Visit::with(['person', 'apartment'])->latest();
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->whereHas('person', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('document', 'like', "%{$search}%");
+            })->orWhereHas('apartment', function($q) use ($search) {
+                $q->where('number', 'like', "%{$search}%")
+                  ->orWhere('block', 'like', "%{$search}%");
+            });
+        }
+
+        return $query->paginate($request->input('per_page', 5));
     }
 
     public function store(Request $request)

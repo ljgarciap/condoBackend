@@ -22,4 +22,30 @@ class Apartment extends Model
     {
         return $this->hasMany(Vehicle::class);
     }
+
+    public function adminPayments()
+    {
+        return $this->hasMany(AdminPayment::class);
+    }
+
+    protected $appends = ['debt_status'];
+
+    public function getDebtStatusAttribute()
+    {
+        $overdue = $this->adminPayments()
+            ->where('status', '!=', 'paid')
+            ->where('due_date', '<', now())
+            ->sum('amount');
+
+        $pending = $this->adminPayments()
+            ->where('status', '!=', 'paid')
+            ->sum('amount');
+
+        return [
+            'is_up_to_date' => $pending <= 0,
+            'overdue_amount' => $overdue,
+            'total_pending' => $pending,
+            'status' => $overdue > 0 ? 'overdue' : ($pending > 0 ? 'pending' : 'up_to_date')
+        ];
+    }
 }

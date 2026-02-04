@@ -48,7 +48,7 @@ class AuthController extends Controller
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
             throw ValidationException::withMessages([
-                'email' => ['Invalid credentials'],
+                'email' => ['Credenciales inválidas'],
             ]);
         }
 
@@ -66,7 +66,7 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logged out successfully']);
+        return response()->json(['message' => 'Sesión cerrada correctamente']);
     }
 
     public function user(Request $request)

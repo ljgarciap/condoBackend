@@ -7,9 +7,11 @@ use Illuminate\Http\Request;
 
 class AdminPaymentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return AdminPayment::with('apartment')->get();
+        return AdminPayment::with('apartment')
+            ->latest()
+            ->paginate($request->input('per_page', 10));
     }
 
     public function store(Request $request)
@@ -18,11 +20,13 @@ class AdminPaymentController extends Controller
             'apartment_id' => 'required|exists:apartments,id',
             'amount' => 'required|numeric',
             'due_date' => 'required|date',
+            'description' => 'nullable|string',
+            'status' => 'sometimes|string|in:pending,paid,overdue',
         ]);
 
         $payment = AdminPayment::create($validated);
 
-        return response()->json($payment, 201);
+        return response()->json($payment->load('apartment'), 201);
     }
 
     public function show(AdminPayment $adminPayment)

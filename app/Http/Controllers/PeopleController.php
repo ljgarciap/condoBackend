@@ -19,7 +19,7 @@ class PeopleController extends Controller
             });
         }
 
-        return $query->paginate(20);
+        return $query->paginate($request->input('per_page', 5));
     }
 
     public function showByDocument($document)
@@ -27,7 +27,7 @@ class PeopleController extends Controller
         $person = Person::where('document', $document)->first();
         
         if (!$person) {
-            return response()->json(['message' => 'Person not found'], 404);
+            return response()->json(['message' => 'Persona no encontrada'], 404);
         }
 
         return response()->json($person);
@@ -73,7 +73,7 @@ class PeopleController extends Controller
         // Check if person is linked to a user or resident
         if ($person->user()->exists() || $person->residents()->exists()) {
             return response()->json([
-                'message' => 'Cannot delete person linked to a user or resident'
+                'message' => 'No se puede eliminar una persona vinculada a un usuario o residente'
             ], 422);
         }
 

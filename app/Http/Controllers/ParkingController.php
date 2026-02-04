@@ -40,6 +40,11 @@ class ParkingController extends Controller
                 'occupied' => $occupiedMotos,
                 'total' => $motoCapacity,
                 'available' => max(0, $motoCapacity - $occupiedMotos)
+            ],
+            'settings' => [
+                'car_capacity' => $carCapacity,
+                'motorcycle_capacity' => $motoCapacity,
+                'max_overdue_amount' => (float) ParkingSetting::where('key', 'max_overdue_amount')->value('value') ?? 0
             ]
         ]);
     }
@@ -49,6 +54,7 @@ class ParkingController extends Controller
         $validated = $request->validate([
             'car_capacity' => 'required|integer|min:0',
             'motorcycle_capacity' => 'required|integer|min:0',
+            'max_overdue_amount' => 'required|numeric|min:0',
         ]);
 
         ParkingSetting::updateOrCreate(
@@ -61,7 +67,12 @@ class ParkingController extends Controller
             ['value' => (string) $validated['motorcycle_capacity']]
         );
 
-        return response()->json(['message' => 'Capacities updated successfully']);
+        ParkingSetting::updateOrCreate(
+            ['key' => 'max_overdue_amount'],
+            ['value' => (string) $validated['max_overdue_amount']]
+        );
+
+        return response()->json(['message' => 'Configuración actualizada correctamente']);
     }
 
     public function registerEntry(Request $request)
@@ -81,7 +92,7 @@ class ParkingController extends Controller
 
         if ($lastMovement && is_null($lastMovement->exit_time)) {
              throw ValidationException::withMessages([
-                'plate' => ['Vehicle is already registered as inside.'],
+                'plate' => ['El vehículo ya se encuentra registrado adentro.'],
             ]);
         }
 
@@ -97,7 +108,7 @@ class ParkingController extends Controller
 
         if ($currentOccupied >= $capacity) {
             throw ValidationException::withMessages([
-                'error' => ["Capacity exceeded for {$type}s."],
+                'error' => ["Capacidad máxima excedida para " . ($type === 'car' ? 'carros' : 'motos') . "."],
             ]);
         }
 
@@ -107,7 +118,7 @@ class ParkingController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Entry registered successfully',
+            'message' => 'Entrada registrada correctamente',
             'data' => $movement
         ]);
     }
@@ -127,7 +138,7 @@ class ParkingController extends Controller
         
         if (!$movement) {
             throw ValidationException::withMessages([
-                'plate' => ['Vehicle is not currently registered as inside.'],
+                'plate' => ['El vehículo no se encuentra registrado adentro.'],
             ]);
         }
 
@@ -136,17 +147,16 @@ class ParkingController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Exit registered successfully',
+            'message' => 'Salida registrada correctamente',
             'data' => $movement
         ]);
     }
 
-    public function history()
+    public function history(Request $request)
     {
         $movements = ParkingMovement::with(['vehicle.apartment.owner.person'])
             ->latest()
-            ->limit(100)
-            ->get();
+            ->paginate($request->input('per_page', 20)); // Keep this higher or default to 5 if standardizing everything
 
         $thirtyDaysAgo = Carbon::now()->subDays(30);
 
@@ -174,19 +184,23 @@ class ParkingController extends Controller
         
         if ($hasBlocks) {
             throw ValidationException::withMessages([
-                'error' => ['Entry blocked due to active coexistence report.'],
+                'error' => ['Ingreso bloqueado por reporte de convivencia activo.'],
             ]);
         }
 
-        // 2. Check for pending Admin Payments
-        $hasDebt = AdminPayment::where('apartment_id', $apartmentId)
-            ->where('status', 'pending')
-            ->where('due_date', '<', Carbon::now()->format('Y-m-d'))
-            ->exists();
+        // 2. Check for pending Admin Payments against configurable limit
+        $maxOverdue = (float) ParkingSetting::where('key', 'max_overdue_amount')->value('value') ?? 0;
         
-        if ($hasDebt) {
+        $totalOverdue = AdminPayment::where('apartment_id', $apartmentId)
+            ->where('status', '!=', 'paid')
+            ->where('due_date', '<', Carbon::now()->format('Y-m-d'))
+            ->sum('amount');
+        
+        if ($totalOverdue > $maxOverdue) {
+            $formattedTotal = number_format($totalOverdue, 0, ',', '.');
+            $formattedMax = number_format($maxOverdue, 0, ',', '.');
             throw ValidationException::withMessages([
-                'error' => ['Entry blocked due to overdue administration payments.'],
+                'error' => ["Ingreso bloqueado. La deuda en mora ($ {$formattedTotal}) supera el límite permitido ($ {$formattedMax})."],
             ]);
         }
     }

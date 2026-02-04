@@ -15,9 +15,20 @@ class VehicleController extends Controller
         'motorcycle' => 0.75,
     ];
 
-    public function index()
+    public function index(Request $request)
     {
-        return Vehicle::with('apartment')->get();
+        $query = Vehicle::with(['apartment.adminPayments']);
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where('plate', 'like', "%{$search}%")
+                  ->orWhereHas('apartment', function($q) use ($search) {
+                      $q->where('number', 'like', "%{$search}%")
+                        ->orWhere('block', 'like', "%{$search}%");
+                  });
+        }
+
+        return $query->paginate($request->input('per_page', 5));
     }
 
     public function store(Request $request)
@@ -77,7 +88,7 @@ class VehicleController extends Controller
 
         if (($currentPoints + $newPoints) > self::CAPACITY_LIMIT) {
             throw ValidationException::withMessages([
-                'type' => ['Vehicle capacity limit exceeded. Car=1.25, Motorcycle=0.75. Max=2.0'],
+                'type' => ['Límite de capacidad excedido para el apartamento. Carro=1.25, Moto=0.75. Máximo=2.0'],
             ]);
         }
     }
