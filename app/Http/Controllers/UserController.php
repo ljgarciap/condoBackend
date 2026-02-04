@@ -9,7 +9,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        // Return all users to be selected as owners
-        return User::all();
+        // Return all users with their person and role data
+        return User::with(['person', 'role'])->get();
     }
 }

@@ -9,7 +9,13 @@ class ApartmentController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
         $query = Apartment::with(['residents.person', 'vehicles', 'owner.person']);
+
+        if ($user->isResident()) {
+            $resident = \App\Models\Resident::where('person_id', $user->person_id)->first();
+            $query->where('id', $resident->apartment_id);
+        }
 
         if ($request->has('search')) {
             $search = $request->search;

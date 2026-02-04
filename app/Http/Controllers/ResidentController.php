@@ -31,9 +31,11 @@ class ResidentController extends Controller
             'name' => 'required|string',
             'document' => 'required|string',
             'document_type' => 'required|string|in:CC,TI,TE,PAS,PEP,RC',
-            'email' => 'nullable|email',
+            'email' => 'required|email',
             'phone' => 'nullable|string',
             'birthdate' => 'required|date',
+            'create_user' => 'boolean',
+            'password' => 'required_if:create_user,true|string|min:6',
         ]);
 
         $person = Person::updateOrCreate(
@@ -41,8 +43,8 @@ class ResidentController extends Controller
             [
                 'name' => $validated['name'],
                 'document_type' => $validated['document_type'],
-                'email' => $request->email,
-                'phone' => $request->phone
+                'email' => $validated['email'],
+                'phone' => $validated['phone']
             ]
         );
 
@@ -51,6 +53,18 @@ class ResidentController extends Controller
             'person_id' => $person->id,
             'birthdate' => $validated['birthdate']
         ]);
+
+        if ($request->create_user) {
+            $role = \App\Models\Role::where('name', 'resident')->first();
+            \App\Models\User::updateOrCreate(
+                ['person_id' => $person->id],
+                [
+                    'email' => $person->email,
+                    'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
+                    'role_id' => $role->id,
+                ]
+            );
+        }
 
         return response()->json($resident->load(['apartment', 'person']), 201);
     }

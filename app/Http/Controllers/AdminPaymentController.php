@@ -9,8 +9,15 @@ class AdminPaymentController extends Controller
 {
     public function index(Request $request)
     {
-        return AdminPayment::with('apartment')
-            ->latest()
+        $user = auth()->user();
+        $query = AdminPayment::with('apartment');
+
+        if ($user->isResident()) {
+            $resident = \App\Models\Resident::where('person_id', $user->person_id)->first();
+            $query->where('apartment_id', $resident->apartment_id);
+        }
+
+        return $query->latest()
             ->paginate($request->input('per_page', 10));
     }
 

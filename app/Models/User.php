@@ -17,6 +17,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'policies_accepted_at',
     ];
 
     public function person()
@@ -37,6 +38,11 @@ class User extends Authenticatable
     public function isVigilante()
     {
         return $this->role && $this->role->name === 'vigilante';
+    }
+
+    public function isResident()
+    {
+        return $this->role && $this->role->name === 'resident';
     }
 
     /**

@@ -13,6 +13,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index']);
+    Route::post('/notifications', [\App\Http\Controllers\NotificationController::class, 'store']);
+    Route::post('/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead']);
+    Route::post('/policies/accept', [\App\Http\Controllers\NotificationController::class, 'acceptPolicies']);
 
     // List/Show routes (Vigilante & Admin)
     Route::get('/apartments', [ApartmentController::class, 'index']);
@@ -27,14 +31,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/parking/exit', [\App\Http\Controllers\ParkingController::class, 'registerExit']);
     
     Route::get('/people/search/{document}', [\App\Http\Controllers\PeopleController::class, 'showByDocument']);
-    Route::apiResource('people', \App\Http\Controllers\PeopleController::class);
+    Route::apiResource('people', \App\Http\Controllers\PeopleController::class)->except(['destroy']);
     Route::apiResource('visits', \App\Http\Controllers\VisitController::class);
     Route::get('/users', [\App\Http\Controllers\UserController::class, 'index']);
     Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index']);
     Route::get('/messages/sent', [\App\Http\Controllers\MessageController::class, 'sent']);
     Route::get('/messages/{message}', [\App\Http\Controllers\MessageController::class, 'show']);
-    Route::get('/admin-payments', [\App\Http\Controllers\AdminPaymentController::class, 'index']);
-    Route::get('/admin-payments/{admin_payment}', [\App\Http\Controllers\AdminPaymentController::class, 'show']);
+    Route::get('/surveys', [\App\Http\Controllers\SurveyController::class, 'index']);
+    Route::get('/surveys/{survey}', [\App\Http\Controllers\SurveyController::class, 'show']);
     Route::get('/coexistence-reports', [\App\Http\Controllers\CoexistenceReportController::class, 'index']);
     Route::get('/coexistence-reports/{coexistence_report}', [\App\Http\Controllers\CoexistenceReportController::class, 'show']);
     Route::get('/surveys', [\App\Http\Controllers\SurveyController::class, 'index']);
@@ -42,6 +46,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admin-only routes (Create, Update, Delete)
     Route::middleware('role:admin')->group(function () {
+        Route::post('/vigilantes', [\App\Http\Controllers\VigilanteController::class, 'store']);
+
         Route::post('/apartments', [ApartmentController::class, 'store']);
         Route::put('/apartments/{apartment}', [ApartmentController::class, 'update']);
         Route::delete('/apartments/{apartment}', [ApartmentController::class, 'destroy']);
@@ -59,6 +65,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/messages', [\App\Http\Controllers\MessageController::class, 'store']);
         Route::post('/messages/{message}/read', [\App\Http\Controllers\MessageController::class, 'markAsRead']);
 
+        Route::delete('/people/{person}', [\App\Http\Controllers\PeopleController::class, 'destroy']);
+
+        Route::get('/admin-payments', [\App\Http\Controllers\AdminPaymentController::class, 'index']);
+        Route::get('/admin-payments/{admin_payment}', [\App\Http\Controllers\AdminPaymentController::class, 'show']);
         Route::post('/admin-payments', [\App\Http\Controllers\AdminPaymentController::class, 'store']);
         Route::put('/admin-payments/{admin_payment}', [\App\Http\Controllers\AdminPaymentController::class, 'update']);
         Route::delete('/admin-payments/{admin_payment}', [\App\Http\Controllers\AdminPaymentController::class, 'destroy']);

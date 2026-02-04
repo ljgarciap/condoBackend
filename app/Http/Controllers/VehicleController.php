@@ -17,7 +17,13 @@ class VehicleController extends Controller
 
     public function index(Request $request)
     {
+        $user = auth()->user();
         $query = Vehicle::with(['apartment.adminPayments']);
+
+        if ($user->isResident()) {
+            $resident = \App\Models\Resident::where('person_id', $user->person_id)->first();
+            $query->where('apartment_id', $resident->apartment_id);
+        }
 
         if ($request->has('search')) {
             $search = $request->search;
