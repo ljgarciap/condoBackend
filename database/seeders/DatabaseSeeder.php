@@ -85,7 +85,7 @@ class DatabaseSeeder extends Seeder
 
         $vehicle = \App\Models\Vehicle::create([
             'apartment_id' => $apt->id,
-            'plate' => 'OLD-999',
+            'plate' => 'OLD999',
             'type' => 'car',
             'description' => 'Test Stationary'
         ]);
@@ -98,7 +98,7 @@ class DatabaseSeeder extends Seeder
 
         $vehicle2 = \App\Models\Vehicle::create([
             'apartment_id' => $apt->id,
-            'plate' => 'NEW-111',
+            'plate' => 'NEW11',
             'type' => 'motorcycle',
             'description' => 'Test Recent'
         ]);
@@ -113,7 +113,7 @@ class DatabaseSeeder extends Seeder
         $person = \App\Models\Person::create([
             'name' => 'John Visitor',
             'document' => 'V-12345',
-            'phone' => '555-0000'
+            'phone' => '5550000'
         ]);
 
         \App\Models\Visit::create([

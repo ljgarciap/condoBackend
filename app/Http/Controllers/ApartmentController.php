@@ -10,7 +10,7 @@ class ApartmentController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Apartment::with(['residents.person', 'vehicles', 'owner.person']);
+        $query = Apartment::with(['residents.person', 'vehicles', 'owner.person', 'pets']);
 
         if ($user->isResident()) {
             $resident = \App\Models\Resident::where('person_id', $user->person_id)->first();
@@ -47,7 +47,7 @@ class ApartmentController extends Controller
 
     public function show(Apartment $apartment)
     {
-        return $apartment->load(['residents.person', 'vehicles', 'owner.person']);
+        return $apartment->load(['residents.person', 'vehicles', 'owner.person', 'pets']);
     }
 
     public function update(Request $request, Apartment $apartment)

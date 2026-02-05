@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('notifications', function (Blueprint $table) {
-            if (!Schema::hasColumn('notifications', 'attachment')) {
-                $table->longText('attachment')->nullable()->after('message');
-            }
+        Schema::table('pets', function (Blueprint $table) {
+            $table->string('breed')->nullable()->after('name');
+            $table->text('description')->nullable()->after('breed');
         });
     }
 
@@ -23,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('notifications', function (Blueprint $table) {
-            $table->dropColumn('attachment');
+        Schema::table('pets', function (Blueprint $table) {
+            $table->dropColumn(['breed', 'description']);
         });
     }
 };

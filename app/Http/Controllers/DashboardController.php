@@ -8,6 +8,7 @@ use App\Models\Vehicle;
 use App\Models\AdminPayment;
 use App\Models\Visit;
 use App\Models\ParkingMovement;
+use App\Models\Pet;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -30,8 +31,16 @@ class DashboardController extends Controller
             // Vehicles
             $totalVehicles = Vehicle::count();
             $cars = Vehicle::where('type', 'car')->count();
-            $motos = Vehicle::where('type', 'moto')->count();
+            $motos = Vehicle::where('type', 'motorcycle')->count();
             $vehiclesInside = ParkingMovement::whereNull('exit_time')->count();
+            $carsInside = ParkingMovement::whereNull('exit_time')
+                ->whereHas('vehicle', function($q) {
+                    $q->where('type', 'car');
+                })->count();
+            $motosInside = ParkingMovement::whereNull('exit_time')
+                ->whereHas('vehicle', function($q) {
+                    $q->where('type', 'motorcycle');
+                })->count();
 
             // Portfolio (Cartera)
             $overduePayments = AdminPayment::where('status', 'overdue')->get();
@@ -64,7 +73,9 @@ class DashboardController extends Controller
                     'total' => $totalVehicles,
                     'cars' => $cars,
                     'motos' => $motos,
-                    'inside' => $vehiclesInside
+                    'inside' => $vehiclesInside,
+                    'cars_inside' => $carsInside,
+                    'motos_inside' => $motosInside
                 ],
                 'portfolio' => [
                     'total_overdue' => $totalOverdue,
@@ -76,6 +87,13 @@ class DashboardController extends Controller
                 'demographics' => [
                     'over_70' => $over70,
                     'under_18' => $under18
+                ],
+                'pets' => [
+                    'total' => \App\Models\Pet::count(),
+                    'dogs' => \App\Models\Pet::where('type', 'dog')->count(),
+                    'cats' => \App\Models\Pet::where('type', 'cat')->count(),
+                    'vaccinated' => \App\Models\Pet::where('vaccinations_current', true)->count(),
+                    'unvaccinated' => \App\Models\Pet::where('vaccinations_current', false)->count(),
                 ]
             ]);
         } catch (\Exception $e) {

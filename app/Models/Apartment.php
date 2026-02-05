@@ -28,6 +28,11 @@ class Apartment extends Model
         return $this->hasMany(AdminPayment::class);
     }
 
+    public function pets()
+    {
+        return $this->hasMany(Pet::class);
+    }
+
     protected $appends = ['debt_status'];
 
     public function getDebtStatusAttribute()

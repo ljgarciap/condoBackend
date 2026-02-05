@@ -34,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/people/search/{document}', [\App\Http\Controllers\PeopleController::class, 'showByDocument']);
     Route::apiResource('people', \App\Http\Controllers\PeopleController::class)->except(['destroy']);
+    Route::apiResource('pets', \App\Http\Controllers\PetController::class)->except(['show']);
     Route::apiResource('visits', \App\Http\Controllers\VisitController::class);
     Route::get('/users', [\App\Http\Controllers\UserController::class, 'index']);
     Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index']);
