@@ -196,9 +196,26 @@ class ParkingController extends Controller
 
     public function history(Request $request)
     {
-        $movements = ParkingMovement::with(['vehicle.apartment.owner.person'])
-            ->latest()
-            ->paginate($request->input('per_page', 20)); // Keep this higher or default to 5 if standardizing everything
+        $query = ParkingMovement::with(['vehicle.apartment.owner.person'])->latest();
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('vehicle', function($vq) use ($search) {
+                    $vq->where('plate', 'like', "%{$search}%")
+                      ->orWhereHas('apartment', function($aq) use ($search) {
+                          $aq->where('number', 'like', "%{$search}%")
+                            ->orWhere('block', 'like', "%{$search}%")
+                            ->orWhereRaw("CONCAT(block, number) LIKE ?", ["%{$search}%"])
+                            ->orWhereHas('owner.person', function($pq) use ($search) {
+                                $pq->where('name', 'like', "%{$search}%");
+                            });
+                      });
+                });
+            });
+        }
+
+        $movements = $query->paginate($request->input('per_page', 5));
 
         $thirtyDaysAgo = Carbon::now()->subDays(30);
 

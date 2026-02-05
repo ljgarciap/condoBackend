@@ -25,6 +25,7 @@ class DashboardController extends Controller
             $completeApartments = Apartment::whereNotNull('block')
                 ->whereNotNull('number')
                 ->whereNotNull('floor')
+                ->whereNotNull('owner_id')
                 ->count();
             $incompleteApartments = $totalApartments - $completeApartments;
 
@@ -42,10 +43,16 @@ class DashboardController extends Controller
                     $q->where('type', 'motorcycle');
                 })->count();
 
-            // Portfolio (Cartera)
-            $overduePayments = AdminPayment::where('status', 'overdue')->get();
-            $totalOverdue = $overduePayments->sum('amount');
-            $inDebtCount = $overduePayments->pluck('apartment_id')->unique()->count();
+            // Portfolio (Cartera) - Sum everything that is not paid and overdue
+            $nowStr = Carbon::now()->format('Y-m-d');
+            $totalOverdue = AdminPayment::where('status', '!=', 'paid')
+                ->where('due_date', '<', $nowStr)
+                ->sum('amount');
+            
+            $inDebtCount = AdminPayment::where('status', '!=', 'paid')
+                ->where('due_date', '<', $nowStr)
+                ->distinct('apartment_id')
+                ->count('apartment_id');
 
             // Visitors
             $visitorsInside = Visit::whereNull('exit_at')->count();

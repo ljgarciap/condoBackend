@@ -94,7 +94,7 @@ class VehicleController extends Controller
 
         if (($currentPoints + $newPoints) > self::CAPACITY_LIMIT) {
             throw ValidationException::withMessages([
-                'type' => ['Límite de capacidad excedido para el apartamento. Carro=1.25, Moto=0.75. Máximo=2.0'],
+                'type' => ['Límite de capacidad excedido para el apartamento.'],
             ]);
         }
     }

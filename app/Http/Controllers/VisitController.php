@@ -16,12 +16,15 @@ class VisitController extends Controller
 
         if ($request->has('search')) {
             $search = $request->search;
-            $query->whereHas('person', function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('document', 'like', "%{$search}%");
-            })->orWhereHas('apartment', function($q) use ($search) {
-                $q->where('number', 'like', "%{$search}%")
-                  ->orWhere('block', 'like', "%{$search}%");
+            $query->where(function($q) use ($search) {
+                $q->whereHas('person', function($sq) use ($search) {
+                    $sq->where('name', 'like', "%{$search}%")
+                      ->orWhere('document', 'like', "%{$search}%");
+                })->orWhereHas('apartment', function($sq) use ($search) {
+                    $sq->where('number', 'like', "%{$search}%")
+                      ->orWhere('block', 'like', "%{$search}%")
+                      ->orWhereRaw("CONCAT(block, number) LIKE ?", ["%{$search}%"]);
+                });
             });
         }
 

@@ -14,7 +14,12 @@ class ApartmentController extends Controller
 
         if ($user->isResident()) {
             $resident = \App\Models\Resident::where('person_id', $user->person_id)->first();
-            $query->where('id', $resident->apartment_id);
+            if ($resident) {
+                $query->where('id', $resident->apartment_id);
+            } else {
+                // If user is resident but has no resident record, show nothing
+                $query->whereRaw('0 = 1');
+            }
         }
 
         if ($request->has('search')) {

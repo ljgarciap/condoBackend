@@ -30,6 +30,11 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    public function resident()
+    {
+        return $this->hasOne(Resident::class, 'person_id', 'person_id');
+    }
+
     public function isAdmin()
     {
         return $this->role && $this->role->name === 'admin';

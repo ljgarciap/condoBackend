@@ -12,7 +12,7 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with(['person', 'role']);
+        $query = User::with(['person', 'role', 'resident.apartment']);
 
         if ($request->has('search')) {
             $search = $request->input('search');
