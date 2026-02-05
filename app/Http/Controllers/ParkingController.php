@@ -123,33 +123,75 @@ class ParkingController extends Controller
         ]);
     }
 
-    public function registerExit(Request $request)
+    public function registerAccess(Request $request)
     {
         $validated = $request->validate([
-            'plate' => 'required|string|exists:vehicles,plate',
+            'identifier' => 'required|string',
         ]);
 
-        $vehicle = Vehicle::where('plate', $validated['plate'])->firstOrFail();
-
-        $movement = ParkingMovement::where('vehicle_id', $vehicle->id)
-            ->whereNull('exit_time')
-            ->latest()
-            ->first();
+        $identifier = $validated['identifier'];
         
-        if (!$movement) {
+        // Try to find by plate or unique_id
+        $vehicle = Vehicle::where('plate', $identifier)
+            ->orWhere('unique_id', $identifier)
+            ->first();
+
+        if (!$vehicle) {
             throw ValidationException::withMessages([
-                'plate' => ['El vehículo no se encuentra registrado adentro.'],
+                'error' => ["Vehículo no encontrado: $identifier"],
             ]);
         }
 
-        $movement->update([
-            'exit_time' => Carbon::now(),
-        ]);
+        // Check if inside
+        $lastMovement = ParkingMovement::where('vehicle_id', $vehicle->id)
+            ->whereNull('exit_time')
+            ->latest()
+            ->first();
 
-        return response()->json([
-            'message' => 'Salida registrada correctamente',
-            'data' => $movement
-        ]);
+        if ($lastMovement) {
+            // Is inside -> REGISTER EXIT
+            $lastMovement->update([
+                'exit_time' => Carbon::now(),
+            ]);
+
+            return response()->json([
+                'message' => "Salida registrada: {$vehicle->plate}",
+                'type' => 'exit',
+                'data' => $lastMovement
+            ]);
+        } else {
+            // Is outside -> REGISTER ENTRY
+            
+            // Check eligibility (same as registerEntry)
+            $this->checkAccessEligibility($vehicle->apartment_id);
+            
+            // Check Capacity
+            $type = $vehicle->type;
+            $settingKey = $type === 'car' ? 'car_capacity' : 'motorcycle_capacity';
+            $capacity = (int) ParkingSetting::where('key', $settingKey)->value('value') ?? ($type === 'car' ? 50 : 20);
+
+            $currentOccupied = ParkingMovement::whereNull('exit_time')
+                ->whereHas('vehicle', function($q) use ($type) {
+                    $q->where('type', $type);
+                })->count();
+
+            if ($currentOccupied >= $capacity) {
+                throw ValidationException::withMessages([
+                    'error' => ["Capacidad máxima excedida para " . ($type === 'car' ? 'carros' : 'motos') . "."],
+                ]);
+            }
+
+            $movement = ParkingMovement::create([
+                'vehicle_id' => $vehicle->id,
+                'entry_time' => Carbon::now(),
+            ]);
+
+            return response()->json([
+                'message' => "Entrada registrada: {$vehicle->plate}",
+                'type' => 'entry',
+                'data' => $movement
+            ]);
+        }
     }
 
     public function history(Request $request)

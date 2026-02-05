@@ -6,7 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Vehicle extends Model
 {
-    protected $fillable = ['apartment_id', 'plate', 'type', 'description'];
+    protected $fillable = ['apartment_id', 'plate', 'type', 'description', 'unique_id'];
+
+    public static function booted()
+    {
+        static::creating(function ($vehicle) {
+            $vehicle->unique_id = (string) \Illuminate\Support\Str::uuid();
+        });
+    }
 
     public function apartment()
     {

@@ -31,12 +31,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/parking/history', [\App\Http\Controllers\ParkingController::class, 'history']);
     Route::post('/parking/entry', [\App\Http\Controllers\ParkingController::class, 'registerEntry']);
     Route::post('/parking/exit', [\App\Http\Controllers\ParkingController::class, 'registerExit']);
+    Route::post('/parking/access', [\App\Http\Controllers\ParkingController::class, 'registerAccess']);
     
     Route::get('/people/search/{document}', [\App\Http\Controllers\PeopleController::class, 'showByDocument']);
     Route::apiResource('people', \App\Http\Controllers\PeopleController::class)->except(['destroy']);
     Route::apiResource('pets', \App\Http\Controllers\PetController::class)->except(['show']);
     Route::apiResource('visits', \App\Http\Controllers\VisitController::class);
-    Route::get('/users', [\App\Http\Controllers\UserController::class, 'index']);
+    Route::apiResource('visits', \App\Http\Controllers\VisitController::class);
+    // Route::get('/users', [\App\Http\Controllers\UserController::class, 'index']); // Moved to admin resource
     Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index']);
     Route::get('/messages/sent', [\App\Http\Controllers\MessageController::class, 'sent']);
     Route::get('/messages/{message}', [\App\Http\Controllers\MessageController::class, 'show']);
@@ -85,5 +87,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/surveys', [\App\Http\Controllers\SurveyController::class, 'store']);
         Route::put('/surveys/{survey}', [\App\Http\Controllers\SurveyController::class, 'update']);
         Route::delete('/surveys/{survey}', [\App\Http\Controllers\SurveyController::class, 'destroy']);
+        Route::apiResource('users', \App\Http\Controllers\UserController::class);
     });
 });

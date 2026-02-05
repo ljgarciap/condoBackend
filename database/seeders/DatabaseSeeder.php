@@ -86,6 +86,7 @@ class DatabaseSeeder extends Seeder
         $vehicle = \App\Models\Vehicle::create([
             'apartment_id' => $apt->id,
             'plate' => 'OLD999',
+            'unique_id' => '14bd852e-310f-4143-9b7b-d9fe37541b6a',
             'type' => 'car',
             'description' => 'Test Stationary'
         ]);
@@ -99,6 +100,7 @@ class DatabaseSeeder extends Seeder
         $vehicle2 = \App\Models\Vehicle::create([
             'apartment_id' => $apt->id,
             'plate' => 'NEW11',
+            'unique_id' => '07857ff4-5ffc-4537-8cd0-4fd248903ffb',
             'type' => 'motorcycle',
             'description' => 'Test Recent'
         ]);
